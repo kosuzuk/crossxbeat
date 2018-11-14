@@ -1,0 +1,49 @@
+button{
+    background: #00aed0;
+    padding: 5px 13px;
+    color: #fff;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+#createNewText{
+    position: fixed;
+    top: 6%;
+    left: 6%;
+}
+
+#createNewButton{
+    padding: 5px 9px;
+    position: fixed;
+    top: 5%;
+    left: 3%;
+}
+
+#searchBar{
+    position: fixed;
+    top: 5%;
+    left: 44%;
+    font-size: 16px;
+    width: 200px;
+}
+
+#searchButton{
+    position: fixed;
+    top: 5%;
+    left: 59%;
+}
+
+#advancedSearchButton{
+    position: fixed;
+    top: 12%;
+    left: 45%;
+}
+
+#existingTrees{
+    position: fixed;
+    top: 25%;
+    left: 45%;
+    font-size: 20px;
+    white-space: nowrap;
+    line-height: 40px;
+}
