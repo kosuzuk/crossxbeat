@@ -20,10 +20,16 @@ const TrackSchema = new Schema({
 	},
 	instruments: {
 		type: [String],
+	},
+	newInstrument: {
+		type: String,
 		required: [true, 'instrument field is required']
 	},
 	genres: {
 		type: [String]
+	},
+	newGenre: {
+		type: String
 	},
 	upVotes: {
 		type: Number

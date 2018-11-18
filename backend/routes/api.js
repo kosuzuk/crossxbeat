@@ -12,7 +12,7 @@ function TreeClass(data) {
     var node = new Node(data)
     this._root = node
     this.search = function(curNode, dataParam, key){
-    	if (curNode.data.dataParam == key){
+    	if (curNode.data[dataParam] == key){
     		return curNode.data
     	}
     	else if (curNode.children == []){
@@ -29,19 +29,31 @@ function TreeClass(data) {
     	}
     }
     this.add = function(curNode, newData){
-    	newNode = new Node(newData)
+    	var newNode = new Node(newData)
     	curNode.children.push(newNode)
     	newNode.parent = curNode
     }
     this.remove = function(curNode, dataParam, key){
-    	nodeList = this.search(curNode, dataParam, key).parent.children
+    	var nodeList = this.search(curNode, dataParam, key).parent.children
     	for (var i = 0; nodeList.length; i++) {
     		if (nodeList[i].data.dataParam == key){
-    			index = i
+    			var index = i
     			break
     		}
     	}
     	nodeList.splice(i, 1)
+    }
+    this.getNumChildren = function(curNode){
+    	if (curNode.children == []){
+    		return 0
+    	}
+    	else {
+    		var res = 0
+    		for (var i = 0; curNode.children.length; i++) {
+    			res += getNumChildren(curNode.children[i])
+    		}
+    		return curNode.children.length + res
+    	}
     }
 }
 
@@ -67,14 +79,9 @@ router.get('/trees/:id', function(req, res, next){
 //get a track from the db
 router.get('/trees/:id/:trackid', function(req, res, next){
 	Tree.findOne({_id: req.params.id}).then(function(tree){
-		var tracksList = tree.tracks
-		for (var i = 0; i < tracksList.length; i++){
-			if (tracksList[i]._id == req.params.trackid){
-				var track = tracksList[i]
-				break
-			}
-		}
-		res.send(track)
+		var tracksX = tree.tracks
+		var trackX = tracksX.search(tracksX._root, "_id", req.params.trackid)
+		res.send(trackX)
 	}).catch(next)
 })
 
@@ -84,20 +91,30 @@ router.post('/trees', function(req, res, next){
 		res.send("error: name is a required field.")
 	}
 	else {
-		req.body.numTracks = 0
-		req.body.tracks = []
 		Tree.create(req.body).then(function(tree){
 			res.send(tree)
     	}).catch(next)	
 	}
 })
 
-//add a new track to a tree in the db
-router.post('/trees/:id', function(req, res, next){
+//add a new track to an existing track in the db
+router.post('/trees/:id/:trackid', function(req, res, next){
 	Tree.findOne({_id: req.params.id}).then(function(tree){
-		var newTracksList = tree.tracks
-		newTracksList.push(req.body)
-		Tree.findByIdAndUpdate(req.params.id, {tracks: newTracksList, numTracks: tree.numTracks + 1}).then(function(tree){
+		var tracksX = tree.tracks
+		var trackX = tracksX.search(tracksX._root, "_id", req.params.trackid)
+		tracksX.add(trackX, req.body)
+		if !(tree.collaboratorNames.includes(trackX.createdBy)){
+			tree.collaboratorNames.push(trackX.createdBy)
+		}
+		if !(tree.instruments.includes(trackX.newInstrument)){
+			tree.instruments.push(trackX.newInstrument)
+		}
+		if !(tree.genres.includes(trackX.newGenre)){
+			tree.genres.push(trackX.newGenre)
+		}
+		Tree.findByIdAndUpdate(req.params.id, 
+		{tracks: tracksX, numTracks: tree.numTracks + 1, collaboratorNames: tree.collaboratorNames, 
+		 instruments: tree.instruments, genres: tree.genres}).then(function(tree){
 			res.send(req.body)
 		}).catch(next)
 	}).catch(next)
@@ -106,25 +123,26 @@ router.post('/trees/:id', function(req, res, next){
 //delete a track from a tree in the db
 router.delete('/trees/:id/:trackid', function(req, res, next){
 	Tree.findOne({_id: req.params.id}).then(function(tree){
-		var newTracksList = tree.tracks
-		for (var i = 0; i < newTracksList.length; i++){
-			if (newTracksList[i]._id == req.params.trackid){
-				var deletedTrack = newTracksList[i]
-				newTracksList.splice(newTracksList.indexOf(deletedTrack), 1)
-				break
-			}
+		if (tree.tracks._root.data._id == req.params.trackid){
+			router.delete('/trees/' + req.params.id)
+			return
 		}
-		var sameCollaborators = false
-		var sameInstruments = false
-		var sameGenres = false
-		for (var i = 0; i < newTracksList.length; i++){
-			if (newTracksList[i].collaboratorNames == req.params.trackid){
-				var deletedTrack = newTracksList[i]
-				newTracksList.splice(newTracksList.indexOf(deletedTrack), 1)
-				break
-			}
+		var tracksX = tree.tracks
+		var trackX = tracksX.search(tracksX._root, "_id", req.params.trackid)
+		tracksX.remove(trackX, "_id", req.params.trackid)
+		if (tracksX.search(tracksX._root, "createdBy", trackX.createdBy) == null){
+			tree.collaboratorNames.splice(tree.collaboratorNames.indexOf(trackX.createdBy), 1)
 		}
-		Tree.findByIdAndUpdate(req.params.id, {tracks: newTracksList, numTracks: tree.numTracks - 1}).then(function(tree){
+		if (tracksX.search(tracksX._root, "newInstrument", trackX.newInstrument) == null){
+			tree.instruments.splice(tree.instruments.indexOf(trackX.newInstrument), 1)
+		}
+		if (tracksX.search(tracksX._root, "newGenre", trackX.newGenre) == null){
+			tree.genres.splice(tree.genres.indexOf(trackX.newGenre), 1)
+		}
+		var numChildren = tracksX.getNumChildren(trackX)
+		Tree.findByIdAndUpdate(req.params.id,
+		{tracks: tracksX, numTracks: tree.numTracks - (1 + numChildren), collaboratorNames: tree.collaboratorNames,
+		instruments: tree.instruments, genres: tree.genres}).then(function(tree){
 			res.send(deletedTrack)
 		}).catch(next)
 	}).catch(next)
