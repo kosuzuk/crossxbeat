@@ -1,10 +1,11 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-//create track schema
-const TrackSchema = new Schema({
+
+/*blueprint for track object
+{
 	trackID: {
-		type: Number
+		type: String
 	},
 	collaboratorNames: {
 		type: [String]
@@ -34,11 +35,12 @@ const TrackSchema = new Schema({
 	upVotes: {
 		type: Number
 	}
-})
+}
+*/
 
 //create song tree schema and model
 const TreeSchema = new Schema({
-	name: {
+	treeName: {
 		type: String,
 		required: [true, 'Name field is required']
 	},
@@ -46,7 +48,8 @@ const TreeSchema = new Schema({
 		type: Schema.Types.Mixed
 	},
 	numTracks: {
-		type: Number
+		type: Number,
+		default: 1
 	},
 	collaboratorNames: {
 		type: [String]
@@ -57,7 +60,7 @@ const TreeSchema = new Schema({
 	genres: {
 		type: [String]
 	},
-	BPM: {
+	bpm: {
 		type: Number,
 		required: [true, 'BPM field is required']
 	}

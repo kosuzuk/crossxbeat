@@ -6,6 +6,7 @@ import AdvancedSearch from "./components/AdvancedSearch"
 class App extends React.Component{
     state = {
         curPage: "home",
+        nextTrackID: 0,
         error: false
     }
     changeScreen = (event) => {
@@ -29,9 +30,9 @@ class App extends React.Component{
         return (
             <div>
                 {this.state.curPage === "home" && 
-                 <Home changeScreen = {this.changeScreen} error = {this.state.error} />}
+                 <Home changeScreen = {this.changeScreen} nextTrackID = {this.state.nextTrackID} error = {this.state.error} />}
                 {this.state.curPage === "advancedSearch" && 
-                 <AdvancedSearch changeScreen = {this.changeScreen} error = {this.state.error} />}
+                 <AdvancedSearch changeScreen = {this.changeScreen} nextTrackID = {this.state.nextTrackID} error = {this.state.error} />}
             </div>
         )
     }
