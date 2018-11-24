@@ -42,7 +42,7 @@ const Schema = mongoose.Schema
 const TreeSchema = new Schema({
 	treeName: {
 		type: String,
-		required: [true, 'Name field is required']
+		required: [true, "Name field is required"]
 	},
 	tracks: {
 		type: Schema.Types.Mixed
@@ -62,9 +62,9 @@ const TreeSchema = new Schema({
 	},
 	bpm: {
 		type: Number,
-		required: [true, 'BPM field is required']
+		required: [true, "BPM field is required"]
 	}
 })
 
-const Tree = mongoose.model('tree', TreeSchema)
+const Tree = mongoose.model("tree", TreeSchema)
 module.exports = Tree
