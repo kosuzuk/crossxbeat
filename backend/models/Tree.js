@@ -63,6 +63,10 @@ const TreeSchema = new Schema({
 	bpm: {
 		type: Number,
 		required: [true, "BPM field is required"]
+	},
+	totalUpVotes: {
+		type: Number,
+		default: 0
 	}
 })
 

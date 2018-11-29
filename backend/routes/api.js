@@ -1,6 +1,9 @@
 const express = require('express')
 const router = express.Router()
 const Tree = require('../models/Tree')
+const User = require('../models/User')
+const Instrument = require('../models/Instrument')
+const Genre = require('../models/Genre')
 
 //data will be track object
 function NodeClass(data) {
@@ -71,21 +74,21 @@ TreeClass.prototype.getNumChildren = function(curNode) {
 }
 
 //get every tree from the db
-router.get('/', function(req, res, next) {
+router.get('/trees', function(req, res, next) {
 	Tree.find({}).then(function(allTrees) {
 		res.send(allTrees)
 	}).catch(next)
 })
 
 //get searched trees from the db with simple search
-router.get('/simplesearch/:input', function(req, res, next) {
-	var input = req.params.input.toLowerCase()
+router.get('/trees/simplesearch/:input', function(req, res, next) {
+	var input = req.params.input
 	Tree.find({treeName: input}).then(function(tree) {
 		if (tree.toString() != "") {
 			res.send(tree)
 			return
 		}
-		else{
+		else {
 			Tree.find({}).then(function(trees) {
 				var matchedTrees = []
 				for (var i = 0; i < trees.length; i++) {
@@ -102,22 +105,33 @@ router.get('/simplesearch/:input', function(req, res, next) {
 })
 
 //get searched trees from the db with advanced search
-router.post('/advancedsearch', function(req, res, next) {
-	var collaboratorNames = []
-	var collaboratorNamesInput = req.body.collaboratorNamesInput.replace(/\s/g, '').toLowerCase()
-	var numCommas = collaboratorNamesInput.split(",").length - 1
-	for (var i = 0; i < numCommas; i++) {
-		collaboratorNames.push(collaboratorNamesInput.slice(0, collaboratorNamesInput.indexOf(",")))
-		collaboratorNamesInput = collaboratorNamesInput.slice(collaboratorNamesInput.indexOf(",") + 1, collaboratorNamesInput.length)
+router.post('/trees/advancedsearch', function(req, res, next) {
+	//shorten variable names
+	var collaboratorNamesInput = req.body.collaboratorNamesInput
+	var numTracksInputLower = req.body.numTracksInputLower
+	var numTracksInputUpper = req.body.numTracksInputUpper
+	var bpmInputLower = req.body.bpmInputLower
+	var bpmInputUpper = req.body.bpmInputUpper
+	var milesInput = req.body.milesInput
+	var numUpVotesInput = req.body.numUpVotesInput
+	//parse input string for collaborator names
+	if (collaboratorNamesInput != ""){
+		var collaboratorNames = []
+		var numCommas = collaboratorNamesInput.split(",").length - 1
+		for (var i = 0; i < numCommas; i++) {
+			collaboratorNames.push(collaboratorNamesInput.slice(0, collaboratorNamesInput.indexOf(",")))
+			collaboratorNamesInput = collaboratorNamesInput.slice(collaboratorNamesInput.indexOf(",") + 1, collaboratorNamesInput.length)
+		}
+		collaboratorNames.push(collaboratorNamesInput)
+		var collaboratorNamesSet = new Set()
 	}
-	collaboratorNames.push(collaboratorNamesInput)
-	var matchedTrees = []
-	var isMatch = true
-	var collaboratorNamesSet = new Set()
 	var treeIncludes = true
+	var isMatch = true
+	var matchedTrees = []
+	//iterate thru each tree and check if it's a match
 	Tree.find({}).then(function(trees) {
 		for (var i = 0; i < trees.length; i++) {
-			if (collaboratorNames != []) {
+			if (collaboratorNamesInput != "") {
 				collaboratorNamesSet = new Set(trees[i].collaboratorNames.map(s => s.toLowerCase()))
 				treeIncludes = true
 				for (var j = 0; j < collaboratorNames.length; j++) {
@@ -125,15 +139,36 @@ router.post('/advancedsearch', function(req, res, next) {
 				}
 				isMatch = isMatch && treeIncludes
 			}
-			/*collaboratorNamesInput: inputs.collaboratorNamesInput.value,
-			instrumentsInput: inputs.instrumentsInput.value,
-			genresInput: inputs.genresInput.value,
-			numTracksInputLower: inputs.numTracksInputLower.value,
-			numTracksInputUpper: inputs.numTracksInputUpper.value,
-			bpmInputLower: inputs.bpmInputLower.value,
-			bpmInputUpper: inputs.bpmInputUpper.value,
-			geoInput: inputs.geoInput.value,
-			numUpVotesInput: inputs.numUpVotesInput.value*/
+			//instrumentsInput: inputs.instrumentsInput.value,
+			//genresInput: inputs.genresInput.value,
+			if (numTracksInputLower != "") {
+				if (numTracksInputUpper != "" && 
+					!(trees[i].numTracks >= numTracksInputLower && trees[i].numTracks <= numTracksInputUpper)) {
+					isMatch = false
+				}
+				else if (numTracksInputUpper == "" && trees[i].numTracks < numTracksInputLower) {
+					isMatch = false
+				}
+			}
+			else if (numTracksInputUpper != "" && trees[i].numTracks > numTracksInputUpper) {
+				isMatch = false
+			}
+			if (bpmInputLower != "") {
+				if (bpmInputUpper != "" && 
+					!(trees[i].bpm >= bpmInputLower && trees[i].bpm <= bpmInputUpper)) {
+					isMatch = false
+				}
+				else if (bpmInputUpper == "" && trees[i].bpm < bpmInputLower) {
+					isMatch = false
+				}
+			}
+			else if (bpmInputUpper != "" && trees[i].bpm > bpmInputUpper) {
+				isMatch = false
+			}
+			//milesInput: inputs.geoInput.value,
+			if (numUpVotesInput != "" && trees[i].totalUpVotes < numUpVotesInput) {
+				isMatch = false
+			}
 			if (isMatch) {
 				matchedTrees.push(trees[i])
 			}
@@ -159,6 +194,13 @@ router.get('/trees/:id/:trackid', function(req, res, next) {
 	}).catch(next)
 })
 
+//get a user from the db
+router.get('/users/:username', function(req, res, next) {
+	Tree.findOne({username: req.params.username}).then(function(user) {
+		res.send(user)
+	}).catch(next)
+})
+
 //add a new tree to the db
 router.post('/trees', function(req, res, next) {
 	if (req.body.treeName == undefined) {
@@ -170,10 +212,27 @@ router.post('/trees', function(req, res, next) {
 		return
 	}
 	else {
+		
 		Tree.create(req.body).then(function(tree) {
 			res.send(tree)
     	}).catch(next)
 	}
+})
+
+//add new user
+router.post('/users', function(req, res, next) {
+	User.create(req.body)
+})
+
+//update user tree field
+router.put('/users/:username/addtree', function(req, res, next) {
+	User.findOne({username: req.params.username}).then(function(user) {
+		var newTreesList = user.trees
+		newTreesList.push(req.body.treeName)
+		User.findByIdAndUpdate(user._id, {trees: newTreesList}).then(function(x) {
+			res.send(req.params.username)
+		}).catch(next)
+	}).catch(next)
 })
 
 //add a new track to an existing tree in the db
@@ -212,13 +271,45 @@ router.post('/trees/:id/:trackid', function(req, res, next) {
 	}).catch(next)
 })
 
+//modify the user's data after adding track
+router.put('/users/:username/addtrack', function(req, res, next) {
+	findOne({username: req.params.username}).then(function(user) {
+		var newTracksList = user.tracks
+		newTracksList.push(req.body.trackID)
+		var newInstrumentsList = user.instruments
+		if (!newInstrumentsList.includes(req.body.newInstrument)) {newInstrumentsList.push(req.body.newInstrument)}
+		var newGenresList = user.genres
+		if (!newGenresList.includes(req.body.newGenre)) {newGenresList.push(req.body.newGenre)}
+		findByIdAndUpdate(user._id, {tracks: newTracksList, numTracks: user.numTracks + 1, 
+									 instruments: newInstrumentsList, genres: newGenresList}).then(function(user) {
+			res.send(user)
+		}).catch(next)
+	}).catch(next)
+})
+
+//add a new instrument
+router.post('/instruments', function(req, res, next) {
+	Instrument.find({instrument: req.body.instrument}).then(function(instruments) {
+		if (instruments.length == 0) {
+			Instrument.create(req.body)
+		}
+		res.send(req.body.instrument)
+	}).catch(next)
+})
+
+//add a new genre
+router.post('/genres', function(req, res, next) {
+	Genre.find({genre: req.body.genre}).then(function(genres) {
+		if (genres.length == 0) {
+			Genre.create(req.body)
+		}
+		res.send(req.body.genre)
+	}).catch(next)
+})
+
 //delete a track from a tree in the db
 router.delete('/trees/:id/:trackid', function(req, res, next) {
 	Tree.findOne({_id: req.params.id}).then(function(tree) {
-		if (tree.tracks._root.data.trackID == req.params.trackid) {
-			router.delete('/trees/' + req.params.id)
-			return
-		}
 		var tracksTreeX = tree.tracks
 		var trackNodeX = TreeClass.prototype.search(tracksTreeX._root, "trackID", req.params.trackid)
 		var trackObjX = trackNodeX.data
@@ -235,10 +326,45 @@ router.delete('/trees/:id/:trackid', function(req, res, next) {
 		var numChildren = TreeClass.prototype.getNumChildren(trackNodeX)
 		Tree.findByIdAndUpdate(req.params.id,
 		{tracks: tracksTreeX, numTracks: tree.numTracks - (1 + numChildren), collaboratorNames: tree.collaboratorNames,
-		instruments: tree.instruments, genres: tree.genres}).then(function(tree) {
+		instruments: tree.instruments, genres: tree.genres, totalUpVotes: tree.totalUpVotes - trackObjX.upVotes}).then(function(tree) {
 			res.send(trackObjX)
 		}).catch(next)
 	}).catch(next)
+})
+
+//modify the user's data after deleting track
+router.put('/users/:username/deletetrack', function(req, res, next) {
+	findOne({username: req.params.username}).then(function(user) {
+		var newTracksList = user.tracks.splice(user.tracks.indexOf(req.body.trackID), 1)
+		findByIdAndUpdate(user._id, {tracks: newTracksList, numTracks: user.numTracks - 1, 
+									 totalTrackUpVotes: user.totalTrackUpVotes - req.body.upVotes}).then(function(user) {
+			res.send(user)
+		}).catch(next)
+	}).catch(next)
+})
+
+//delete an instrument from the db
+router.delete('/instruments/:instrument', function(req, res, next) {
+	Tree.find({}).then(function(trees) {
+		for (var i = 0; i < trees.length; i++) {
+			if (trees[i].instruments.includes(req.params.instrument)) {
+				return
+			}
+		}
+		Instrument.collection.remove({instrument: req.params.instrument})
+	})
+})
+
+//delete a genre from the db
+router.delete('/genres/:genre', function(req, res, next) {
+	Tree.find({}).then(function(trees) {
+		for (var i = 0; i < trees.length; i++) {
+			if (trees[i].genres.includes(req.params.genre)) {
+				return
+			}
+		}
+		Genre.collection.remove({genre: req.params.genre})
+	})
 })
 
 //delete a tree from the db
@@ -246,6 +372,38 @@ router.delete('/trees/:id', function(req, res, next) {
 	Tree.findByIdAndRemove({_id: req.params.id}).then(function(tree) {
 		res.send(tree)
 	}).catch(next)
+})
+
+//delete trees from users' data
+router.post('/users/:treename/deletetree', function(req, res, next) {
+	for (var i = 0; i < req.body.collaboratorNames.length; i++) {
+		User.findOne({username: req.body.collaboratorNames[i]}).then(function(user) {
+			User.findByIdAndUpdate(user._id, {trees: user.trees.splice(user.trees.indexOf(req.params.treeName), 1)}).catch(next)
+		}).catch(next)
+	}
+	res.send(req.params.treeName)
+})
+
+//upvote button- update tree and track upvote numbers
+router.put('/trees/:id/:trackid/upvote', function(req, res, next) {
+	Tree.findOne({_id: req.params.id}).then(function(tree) {
+		var tracksTreeX = tree.tracks
+		var TrackObjX = TreeClass.prototype.search(tree._root, "trackID", req.params.trackid)
+		trackObjX.upVotes += 1
+		Tree.findByIdAndUpdate(user._id, {totalUpVotes: tree.totalUpVotes + 1, tracks: tracksTreeX}).then(function(tree) {
+			res.send(tree)
+		}).catch(next)
+	}).catch(next)
+})
+
+//update users' total track up votes, used when a track is up voted
+router.put('/users/upvote', function(req, res, next) {
+	for (var i = 0; i < req.body.collaboratorNames.length; i++) {
+		User.findOne({username: req.body.collaboratorNames[i]}).then(function(user) {
+			User.findByIdAndUpdate(user._id, {totalTrackUpVotes: user.totalTrackUpVotes + 1}).catch(next)
+		}).catch(next)
+	}
+	res.send(req.body.collaboratorNames)
 })
 
 module.exports = router

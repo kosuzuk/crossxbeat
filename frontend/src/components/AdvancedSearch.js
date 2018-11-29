@@ -28,7 +28,6 @@ class AdvancedSearch extends React.Component {
 		this.setState({modalIsOpen: false})
 	}
 	notAllNumbers(str) {
-		str = str.replace(/\s/g, '')
 		for (var i = 0; i < str.length; i++) {
 			if (48 > str.charCodeAt(i) || 57 < str.charCodeAt(i)) {
 				return true
@@ -38,16 +37,24 @@ class AdvancedSearch extends React.Component {
 	}
 	advancedSearchSubmit = (event) => {
     	event.preventDefault()
-    	var inputs = event.target.elements
-		if (this.notAllNumbers(inputs.numTracksInputLower.value) || this.notAllNumbers(inputs.numTracksInputUpper.value) ||
-			this.notAllNumbers(inputs.bpmInputLower.value) || this.notAllNumbers(inputs.bpmInputUpper.value) ||
-			this.notAllNumbers(inputs.numUpVotesInput.value)) {
+    	var inputs = {
+			collaboratorNamesInput: event.target.elements.collaboratorNamesInput.value.replace(/\s/g, '').toLowerCase(),
+			numTracksInputLower: event.target.elements.numTracksInputLower.value.replace(/\s/g, ''),
+			numTracksInputUpper: event.target.elements.numTracksInputUpper.value.replace(/\s/g, ''),
+			bpmInputLower: event.target.elements.bpmInputLower.value.replace(/\s/g, ''),
+			bpmInputUpper: event.target.elements.bpmInputUpper.value.replace(/\s/g, ''),
+			milesInput: event.target.elements.milesInput.value.replace(/\s/g, ''),
+			numUpVotesInput: event.target.elements.numUpVotesInput.value.replace(/\s/g, '')
+		}
+		if (this.notAllNumbers(inputs.numTracksInputLower) || this.notAllNumbers(inputs.numTracksInputUpper) ||
+			this.notAllNumbers(inputs.bpmInputLower) || this.notAllNumbers(inputs.bpmInputUpper) ||
+			this.notAllNumbers(inputs.milesInput) || this.notAllNumbers(inputs.numUpVotesInput)) {
 			this.setState({error: true})
 		}
 		else {
 			this.setState({error: false})
 			this.closeModal()
-			this.props.advancedSearchSubmit(event)
+			this.props.advancedSearchSubmit(inputs)
 		}
 	}
 	render() {
@@ -73,8 +80,8 @@ class AdvancedSearch extends React.Component {
 					<input id = "numTracksInputLower" style = {{width:"4%"}}/> to <input id = "numTracksInputUpper" style = {{width:"4%"}}/>
 					<div>BPM:</div>
 					<input id = "bpmInputLower" style={{width:"4%"}}/> to <input id = "bpmInputUpper" style = {{width:"4%"}}/>
-					<div>Musicians near(type zip code or city):</div>
-					<input id = "geoInput" style = {{width:"50%"}}/>
+					<div>Musicians within x miles from me:</div>
+					<input id = "milesInput" style = {{width:"4%"}}/>
 					<div>Number of upvotes, more than:</div>
 					<input id = "numUpVotesInput" style={{width:"4%"}}/>
 					{this.state.error && <div style = {{color:"red"}}>Please only enter numbers for the number of tracks, BPM, and number of upvotes fields.</div>}

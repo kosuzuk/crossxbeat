@@ -22,7 +22,7 @@ app.use(cookieParser())
 app.use(express.static(path.join(__dirname, "public")))
 
 app.use('/api', apiRouter)
-mongoose.connect('mongodb://localhost/treedb', {useNewUrlParser: true})
+mongoose.connect('mongodb://localhost/crossxbeatdb', {useNewUrlParser: true})
 mongoose.Promise = global.Promise
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
