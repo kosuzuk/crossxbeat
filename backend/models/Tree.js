@@ -34,7 +34,7 @@ const Schema = mongoose.Schema
 	},
 	upVotes: {
 		type: Number
-	}
+	},
 }
 */
 

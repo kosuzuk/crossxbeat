@@ -277,7 +277,7 @@ router.post('/users/advancedsearch', function(req, res, next) {
 	}).catch(next)
 })
 
-//get a song tree from the db
+//get a tree from the db
 router.get('/trees/:id', function(req, res, next) {
 	Tree.findOne({_id: req.params.id}).then(function(tree) {
 		res.send(tree)

@@ -200,11 +200,11 @@ class AdvancedSearch extends React.Component {
 					<div>usernames separated by commas:</div>
 					<input id = "collaboratorNamesInput" style = {{width: "50%"}} onFocus = {this.onFocus} onBlur = {this.onBlur}/>
 					<div>Instruments:</div>
-					{this.state.displayedInstruments.map(instrument => <button id = "instrumentButton" className = {instrument.instrument} key = {instrument.instrument} 
-					 style = {{background: this.state.instrumentButtonColors[this.state.displayedInstruments.indexOf(instrument)]}} onClick = {this.instrumentButtonOnClick}>{instrument.instrument}</button>)}
+						{this.state.displayedInstruments.map(instrument => <button id = "instrumentButton" className = {instrument.instrument} key = {instrument.instrument} 
+						 style = {{background: this.state.instrumentButtonColors[this.state.displayedInstruments.indexOf(instrument)]}} onClick = {this.instrumentButtonOnClick}>{instrument.instrument}</button>)}
 					<div>Genres:</div>
-					{this.state.displayedGenres.map(genre => <button id = "genreButton" className = {genre.genre} key = {genre.genre} 
-					 style = {{background: this.state.genreButtonColors[this.state.displayedGenres.indexOf(genre)]}} onClick = {this.genreButtonOnClick}>{genre.genre}</button>)}
+						{this.state.displayedGenres.map(genre => <button id = "genreButton" className = {genre.genre} key = {genre.genre} 
+						 style = {{background: this.state.genreButtonColors[this.state.displayedGenres.indexOf(genre)]}} onClick = {this.genreButtonOnClick}>{genre.genre}</button>)}
 					<div>Number of tracks:</div>
 					<input id = "numTracksInputLower" onFocus = {this.onFocus} onBlur = {this.onBlur}/> to <input id = "numTracksInputUpper" onFocus = {this.onFocus} onBlur = {this.onBlur}/>
 					<div>BPM:</div>
@@ -219,11 +219,11 @@ class AdvancedSearch extends React.Component {
 					<div>username:</div>
 					<input id = "usernameInputU" style = {{width: "50%"}} onFocus = {this.onFocus} onBlur = {this.onBlur}/>
 					<div>Instruments:</div>
-					{this.state.displayedInstruments.map(instrument => <button id = "instrumentButton" className = {instrument.instrument} key = {instrument.instrument} 
-					 style = {{background: this.state.instrumentButtonColors[this.state.displayedInstruments.indexOf(instrument)]}} onClick = {this.instrumentButtonOnClick}>{instrument.instrument}</button>)}
+						{this.state.displayedInstruments.map(instrument => <button id = "instrumentButton" className = {instrument.instrument} key = {instrument.instrument} 
+						 style = {{background: this.state.instrumentButtonColors[this.state.displayedInstruments.indexOf(instrument)]}} onClick = {this.instrumentButtonOnClick}>{instrument.instrument}</button>)}
 					<div>Genres:</div>
-					{this.state.displayedGenres.map(genre => <button id = "genreButton" className = {genre.genre} key = {genre.genre} 
-					 style = {{background: this.state.genreButtonColors[this.state.displayedGenres.indexOf(genre)]}} onClick = {this.genreButtonOnClick}>{genre.genre}</button>)}
+						{this.state.displayedGenres.map(genre => <button id = "genreButton" className = {genre.genre} key = {genre.genre} 
+						 style = {{background: this.state.genreButtonColors[this.state.displayedGenres.indexOf(genre)]}} onClick = {this.genreButtonOnClick}>{genre.genre}</button>)}
 					<div>Musicians within x miles from me:</div>
 					<input id = "milesInputU" onFocus = {this.onFocus} onBlur = {this.onBlur}/>
 					<div>Number of upvotes, more than:</div>
